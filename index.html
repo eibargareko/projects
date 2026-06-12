@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eibar · Proyectos Estratégicos</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css"/>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: Arial, sans-serif; background:#f5f5f3; overflow:hidden; }
+#header {
+  position:fixed; top:0; left:0; right:0; z-index:1000;
+  background:#fff; border-bottom:1px solid #ddd;
+  padding:0 16px; display:flex; align-items:center; gap:12px; height:52px;
+}
+.logo-bar { width:5px; height:26px; background:#CE004A; flex-shrink:0; }
+.hdr-title { font-size:13px; font-weight:700; color:#1a1a1a; }
+.hdr-sub { font-size:10px; color:#999; }
+#filters { display:flex; align-items:center; gap:5px; margin-left:auto; }
+.filter-lbl { font-size:10px; font-weight:700; color:#bbb; letter-spacing:0.05em; }
+.fbtn { font-size:10px; font-weight:600; padding:3px 10px; border:1px solid #ddd; background:#fafafa; color:#666; cursor:pointer; white-space:nowrap; }
+.fbtn:hover { border-color:#aaa; color:#333; }
+.fbtn.active { background:#1a1a1a; color:#fff; border-color:#1a1a1a; }
+.fbtn[data-cat="Regeneración urbana"].active  { background:#CE004A; border-color:#CE004A; }
+.fbtn[data-cat="Industrial / Sandbox"].active  { background:#003DA5; border-color:#003DA5; }
+.fbtn[data-cat="Patrimonio industrial"].active { background:#7a5c3a; border-color:#7a5c3a; }
+.fbtn[data-cat="En definición"].active         { background:#555;    border-color:#555; }
+.hdr-badge { font-size:10px; font-weight:700; color:#CE004A; border:1px solid #CE004A; padding:3px 8px; flex-shrink:0; margin-left:8px; }
+#map-wrap { position:fixed; top:52px; left:0; right:0; bottom:0; transition:right 0.3s ease; }
+#map { width:100%; height:100%; }
+#panel {
+  position:fixed; top:52px; right:-440px; bottom:0; width:420px;
+  background:#fff; border-left:1px solid #ddd; z-index:900;
+  overflow-y:auto; transition:right 0.3s ease;
+}
+#panel.open { right:0; }
+.p-close { position:absolute; top:11px; right:13px; width:26px; height:26px; background:none; border:1px solid #ddd; cursor:pointer; font-size:14px; color:#888; display:flex; align-items:center; justify-content:center; }
+.p-close:hover { background:#f5f5f3; }
+.p-head { padding:16px 44px 12px 16px; border-bottom:1px solid #f0f0f0; }
+.p-tag  { font-size:10px; font-weight:700; letter-spacing:0.1em; color:#CE004A; text-transform:uppercase; margin-bottom:4px; }
+.p-title { font-size:16px; font-weight:700; color:#1a1a1a; line-height:1.25; }
+.p-sub  { font-size:11px; color:#999; margin-top:3px; }
+#pcarousel { width:100%; height:240px; background:#1a1a1a; position:relative; overflow:hidden; border-bottom:1px solid #eee; }
+#pcarousel .slide { position:absolute; inset:0; opacity:0; transition:opacity 0.35s ease; }
+#pcarousel .slide.on { opacity:1; }
+#pcarousel .slide img { width:100%; height:100%; object-fit:cover; display:block; }
+#pcarousel .ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:11px; color:#888; background:#f0f0ee; text-align:center; padding:0 20px; }
+#pcarousel .caption { position:absolute; bottom:0; left:0; right:0; z-index:5; background:linear-gradient(transparent,rgba(0,0,0,0.6)); padding:24px 12px 8px; font-size:12px; font-weight:600; color:#fff; }
+#pcarousel .cbtn { position:absolute; top:50%; transform:translateY(-50%); z-index:10; width:30px; height:30px; background:rgba(0,0,0,0.4); border:none; color:#fff; font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+#pcarousel .cbtn:hover { background:rgba(0,0,0,0.65); }
+#pcarousel .cprev { left:8px; }
+#pcarousel .cnext { right:8px; }
+#pcarousel .cdots { position:absolute; bottom:9px; right:10px; z-index:10; display:flex; gap:4px; }
+#pcarousel .cdot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.4); cursor:pointer; }
+#pcarousel .cdot.on { background:#fff; }
+.p-body { padding:16px; }
+.sec { margin-bottom:16px; }
+.sec-lbl { font-size:9px; font-weight:700; letter-spacing:0.1em; color:#CE004A; text-transform:uppercase; padding-bottom:4px; border-bottom:1px solid #f0f0f0; margin-bottom:7px; }
+.sec p { font-size:12px; color:#444; line-height:1.65; }
+.meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.mbox { background:#fafafa; border:1px solid #efefef; padding:8px 10px; }
+.mval { font-size:14px; font-weight:700; color:#1a1a1a; }
+.mlbl { font-size:10px; color:#aaa; margin-top:1px; }
+.rrow { display:flex; gap:9px; padding:5px 0; border-bottom:1px solid #f7f7f5; }
+.rrow:last-child { border-bottom:none; }
+.rkey { font-size:10px; font-weight:700; color:#CE004A; min-width:66px; padding-top:1px; flex-shrink:0; }
+.rkey.bl { color:#003DA5; }
+.rval { font-size:11px; color:#444; line-height:1.5; }
+.tlrow { display:flex; gap:9px; padding:6px 0; border-bottom:1px solid #f7f7f5; }
+.tlrow:last-child { border-bottom:none; }
+.tlyr { font-size:11px; font-weight:700; color:#CE004A; min-width:50px; flex-shrink:0; padding-top:1px; }
+.tltx { font-size:12px; color:#555; line-height:1.5; }
+.chips { display:flex; flex-wrap:wrap; gap:4px; margin-top:5px; }
+.chip { font-size:11px; padding:3px 8px; border:1px solid #ddd; color:#555; background:#fafafa; }
+.chip.r { border-color:#CE004A; color:#CE004A; background:#fff5f8; }
+.nota { background:#fafaf7; border:1px solid #e8e8e0; padding:12px; font-size:12px; color:#888; line-height:1.6; font-style:italic; margin-bottom:14px; }
+#loading {
+  position:fixed; top:52px; left:0; right:0; bottom:0;
+  background:#f5f5f3; z-index:2000;
+  display:flex; align-items:center; justify-content:center; flex-direction:column; gap:10px;
+}
+.spin { width:22px; height:22px; border:2px solid #ddd; border-top-color:#CE004A; border-radius:50%; animation:sp 0.7s linear infinite; }
+@keyframes sp { to { transform:rotate(360deg); } }
+#loading p { font-size:11px; color:#aaa; }
+#error-msg {
+  display:none; position:fixed; top:52px; left:0; right:0; bottom:0;
+  background:#f5f5f3; z-index:2000;
+  align-items:center; justify-content:center; flex-direction:column; gap:12px;
+}
+#error-msg p { font-size:13px; color:#888; text-align:center; max-width:320px; line-height:1.6; }
+#error-msg a { font-size:11px; color:#CE004A; }
+#legend { position:fixed; bottom:18px; left:14px; z-index:1000; background:#fff; border:1px solid #ddd; padding:9px 13px; }
+.lgtitle { font-size:9px; font-weight:700; letter-spacing:0.07em; color:#1a1a1a; margin-bottom:6px; }
+.lgrow { display:flex; align-items:center; gap:6px; margin-bottom:3px; font-size:10px; color:#555; }
+.lgdot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.leaflet-tooltip { font-family:Arial,sans-serif; font-size:11px; padding:4px 8px; border-radius:0!important; border:1px solid #ddd!important; box-shadow:none!important; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="logo-bar"></div>
+  <div>
+    <div class="hdr-title">Eibar · Proyectos Estratégicos</div>
+    <div class="hdr-sub">PEDL 2026 — Haz clic en un espacio del mapa</div>
+  </div>
+  <div id="filters">
+    <span class="filter-lbl">VER</span>
+    <button class="fbtn active" data-cat="todos">Todos</button>
+    <button class="fbtn" data-cat="Regeneración urbana">Regeneración</button>
+    <button class="fbtn" data-cat="Industrial / Sandbox">Industrial</button>
+    <button class="fbtn" data-cat="Patrimonio industrial">Patrimonio</button>
+    <button class="fbtn" data-cat="En definición">Sin definir</button>
+  </div>
+  <div class="hdr-badge">PEDL 2026</div>
+</div>
+
+<div id="loading"><div class="spin"></div><p>Cargando datos...</p></div>
+
+<div id="error-msg">
+  <p>No se han podido cargar los datos.<br>Comprueba tu conexión a internet e intenta recargar la página.</p>
+  <a href="javascript:location.reload()">Recargar</a>
+</div>
+
+<div id="map-wrap"><div id="map"></div></div>
+
+<div id="panel">
+  <button class="p-close" onclick="closePanel()">×</button>
+  <div class="p-head">
+    <div class="p-tag" id="ptag"></div>
+    <div class="p-title" id="ptitle"></div>
+    <div class="p-sub" id="psub"></div>
+  </div>
+  <div id="pcarousel"></div>
+  <div class="p-body" id="pbody"></div>
+</div>
+
+<div id="legend">
+  <div class="lgtitle">ESPACIOS ESTRATÉGICOS</div>
+  <div class="lgrow"><div class="lgdot" style="background:#CE004A"></div>Regeneración urbana</div>
+  <div class="lgrow"><div class="lgdot" style="background:#003DA5"></div>Industrial / Sandbox</div>
+  <div class="lgrow"><div class="lgdot" style="background:#7a5c3a"></div>Patrimonio industrial</div>
+  <div class="lgrow"><div class="lgdot" style="background:#777"></div>En definición</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<script>
+
+// ═══════════════════════════════════════════════════════════════
+// URL CSV de Google Sheets — publicada en: Archivo → Publicar en la web → CSV
+// ═══════════════════════════════════════════════════════════════
+var SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQM9NuVW3nmT-2PgbvIvhh9aXUGSI8R1Dv6AzOGL9P5oDKVHdUim6tYXfhY-zqf71mwU5Wrmu9hJgP5/pub?gid=0&single=true&output=csv';
+// ═══════════════════════════════════════════════════════════════
+
+var map = L.map('map', {center:[43.185,-2.469], zoom:15});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution:'&copy; OpenStreetMap &copy; CARTO', subdomains:'abcd', maxZoom:19
+}).addTo(map);
+
+var _markers=[], _filter='todos', _data=[];
+
+function makeIcon(color,size,dim){
+  var ps=size+14, op=dim?'0.2':'0.9';
+  var anim=dim?'':'<animate attributeName="r" values="'+size+';'+(size+11)+';'+size+'" dur="2.5s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.2;0;0.2" dur="2.5s" repeatCount="indefinite"/>';
+  var svg='<svg width="'+(ps*2)+'" height="'+(ps*2)+'" viewBox="0 0 '+(ps*2)+' '+(ps*2)+'" xmlns="http://www.w3.org/2000/svg"><circle cx="'+ps+'" cy="'+ps+'" r="'+(size+4)+'" fill="'+color+'" opacity="0.15">'+anim+'</circle><circle cx="'+ps+'" cy="'+ps+'" r="'+size+'" fill="'+color+'" opacity="'+op+'"/></svg>';
+  return L.divIcon({html:svg,className:'',iconSize:[ps*2,ps*2],iconAnchor:[ps,ps]});
+}
+
+function renderMarkers(data){
+  _markers.forEach(function(m){map.removeLayer(m);}); _markers=[];
+  data.forEach(function(p){
+    if(!p.lat||!p.lng||isNaN(p.lat)||isNaN(p.lng)) return;
+    var dim=_filter!=='todos'&&p.cat!==_filter;
+    var m=L.marker([p.lat,p.lng],{icon:makeIcon(p.color,p.size,dim)}).addTo(map);
+    m.bindTooltip('<b>'+p.title+'</b><br><span style="font-size:10px;color:#888">'+p.sub+'</span>',{direction:'top',offset:[0,-p.size-5]});
+    if(!dim) m.on('click',function(){openPanel(p);});
+    _markers.push(m);
+  });
+}
+
+document.querySelectorAll('.fbtn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    _filter=btn.getAttribute('data-cat');
+    closePanel();
+    renderMarkers(_data);
+  });
+});
+
+var _ci=0,_cs=[];
+function buildCarousel(imgs,imgText){
+  var el=document.getElementById('pcarousel');
+  _ci=0; _cs=imgs||[];
+  if(!_cs.length){
+    el.innerHTML='<div class="slide on"><div class="ph">'+imgText+'</div></div>';
+    return;
+  }
+  var html='';
+  _cs.forEach(function(s,i){
+    html+='<div class="slide'+(i===0?' on':'')+'" id="cs'+i+'">';
+    html+='<img src="'+s.url+'" alt="'+s.tit+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'">';
+    html+='<div class="ph" style="display:none">'+s.tit+'</div>';
+    html+='<div class="caption">'+s.tit+'</div>';
+    html+='</div>';
+  });
+  if(_cs.length>1){
+    html+='<button class="cbtn cprev" onclick="cNav(-1)">&#8249;</button>';
+    html+='<button class="cbtn cnext" onclick="cNav(1)">&#8250;</button>';
+    html+='<div class="cdots">';
+    _cs.forEach(function(s,i){html+='<div class="cdot'+(i===0?' on':'')+'" onclick="cGo('+i+')"></div>';});
+    html+='</div>';
+  }
+  el.innerHTML=html;
+}
+function cNav(d){cGo((_ci+d+_cs.length)%_cs.length);}
+function cGo(i){
+  var el=document.getElementById('pcarousel');
+  var sl=el.querySelectorAll('.slide'),dt=el.querySelectorAll('.cdot');
+  if(!sl.length)return;
+  sl[_ci].classList.remove('on'); if(dt[_ci])dt[_ci].classList.remove('on');
+  _ci=i;
+  sl[_ci].classList.add('on'); if(dt[_ci])dt[_ci].classList.add('on');
+}
+
+function openPanel(p){
+  document.getElementById('ptag').textContent=p.tag;
+  document.getElementById('ptitle').textContent=p.title;
+  document.getElementById('psub').textContent=p.sub;
+  buildCarousel(p.imgs,p.imgText);
+  var b='';
+  if(p.sinInt) b+='<div class="nota">📍 Espacio inventariado sin intervención prevista actualmente.</div>';
+  b+='<div class="sec"><div class="sec-lbl">Descripción</div><p>'+p.desc+'</p></div>';
+  if(p.meta&&p.meta.length){
+    b+='<div class="sec"><div class="sec-lbl">Datos clave</div><div class="meta-grid">';
+    p.meta.forEach(function(m){b+='<div class="mbox"><div class="mval">'+m.v+'</div><div class="mlbl">'+m.l+'</div></div>';});
+    b+='</div></div>';
+  }
+  if(p.usos&&p.usos.length){
+    b+='<div class="sec"><div class="sec-lbl">Distribución de usos</div>';
+    p.usos.forEach(function(u){b+='<div class="rrow"><div class="rkey">'+u.p+'</div><div class="rval">'+u.u+'</div></div>';});
+    b+='</div>';
+  }
+  if(p.fases&&p.fases.length){
+    b+='<div class="sec"><div class="sec-lbl">Fases del proyecto</div>';
+    p.fases.forEach(function(f){b+='<div class="rrow"><div class="rkey bl">'+f.f+'</div><div class="rval">'+f.d+'</div></div>';});
+    b+='</div>';
+  }
+  if(p.tl&&p.tl.length){
+    b+='<div class="sec"><div class="sec-lbl">Hoja de ruta</div>';
+    p.tl.forEach(function(t){b+='<div class="tlrow"><div class="tlyr">'+t.y+'</div><div class="tltx">'+t.t+'</div></div>';});
+    b+='</div>';
+  }
+  if(p.socios&&p.socios.length){
+    b+='<div class="sec"><div class="sec-lbl">Socios y agentes</div><div class="chips">';
+    p.socios.forEach(function(s){b+='<span class="chip">'+s+'</span>';});
+    b+='</div></div>';
+  }
+  if(p.fin&&p.fin.length){
+    b+='<div class="sec"><div class="sec-lbl">Financiación</div><div class="chips">';
+    p.fin.forEach(function(f){b+='<span class="chip r">'+f+'</span>';});
+    b+='</div></div>';
+  }
+  document.getElementById('pbody').innerHTML=b;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('map-wrap').style.right='420px';
+  setTimeout(function(){map.invalidateSize();},340);
+}
+
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('map-wrap').style.right='0';
+  setTimeout(function(){map.invalidateSize();},340);
+}
+
+// ─── CSV parser ───────────────────────────────────────────────
+function parseRow(line){
+  var res=[],cur='',inQ=false,i=0;
+  while(i<line.length){
+    var c=line[i];
+    if(inQ){if(c==='"'&&line[i+1]==='"'){cur+='"';i+=2;}else if(c==='"'){inQ=false;i++;}else{cur+=c;i++;}}
+    else{if(c==='"'){inQ=true;i++;}else if(c===','){res.push(cur);cur='';i++;}else{cur+=c;i++;}}
+  }
+  res.push(cur); return res;
+}
+function pipes(str){ return str?str.split('|').map(function(s){return s.trim();}).filter(Boolean):[]; }
+function pairs(str,k1,k2){
+  if(!str||!str.trim()) return [];
+  return str.split('|').map(function(s){
+    var p=s.split('::'); if(p.length<2) return null;
+    var o={}; o[k1]=p[0].trim(); o[k2]=p.slice(1).join('::').trim(); return o;
+  }).filter(Boolean);
+}
+function imgs(str){
+  if(!str||!str.trim()) return [];
+  return str.split('|').map(function(s){
+    s=s.trim(); var p=s.split('::');
+    return p.length>=2?{tit:p[0].trim(),url:p[1].trim()}:null;
+  }).filter(function(s){return s&&s.url&&s.url.indexOf('otraurl')===-1;});
+}
+function fixCoord(s, isLng){
+  // Fix common copy-paste error: 431.843 → 43.1843, -24.732 → -2.4732
+  var n=parseFloat(s);
+  if(isNaN(n)) return null;
+  if(!isLng && (n>90 || n<-90)) n=n/10;
+  if(isLng && (n>20 || n<-20)) n=n/10;
+  return n;
+}
+function parseCSV(text){
+  var lines=text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').trim().split('\n');
+  if(lines.length<2) return [];
+  var hdrs=parseRow(lines[0]).map(function(h){return h.trim();});
+  var result=[];
+  for(var i=1;i<lines.length;i++){
+    if(!lines[i].trim()) continue;
+    var vals=parseRow(lines[i]);
+    var o={}; hdrs.forEach(function(h,j){o[h]=(vals[j]||'').trim();});
+    if(!o.id||!o.titulo) continue;
+    var lat=fixCoord(o.lat,false), lng=fixCoord(o.lng,true);
+    if(!lat||!lng) continue;
+    result.push({
+      id:o.id, lat:lat, lng:lng,
+      color:o.color||'#777', size:parseInt(o.size)||16,
+      cat:o.tag||'En definición', tag:o.tag||'',
+      title:o.titulo, sub:o.subtitulo||'',
+      imgText:o.titulo,
+      imgs:imgs(o.imagenes||''),
+      desc:o.descripcion||'',
+      meta:[
+        o.meta1_val?{v:o.meta1_val,l:o.meta1_lbl||''}:null,
+        o.meta2_val?{v:o.meta2_val,l:o.meta2_lbl||''}:null,
+        o.meta3_val?{v:o.meta3_val,l:o.meta3_lbl||''}:null,
+        o.meta4_val?{v:o.meta4_val,l:o.meta4_lbl||''}:null,
+      ].filter(Boolean),
+      usos:pairs(o.usos,'p','u'),
+      fases:pairs(o.fases,'f','d'),
+      tl:pairs(o.timeline,'y','t'),
+      socios:pipes(o.socios),
+      fin:pipes(o.financiacion),
+      sinInt:o.sinIntervencion==='true'||o.sinIntervencion==='1'
+    });
+  }
+  return result;
+}
+
+// ─── Init ─────────────────────────────────────────────────────
+function showError(){
+  document.getElementById('loading').style.display='none';
+  document.getElementById('error-msg').style.display='flex';
+}
+
+fetch(SHEET_URL)
+  .then(function(r){
+    console.log('[MAPA] fetch status:', r.status, r.ok);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.text();
+  })
+  .then(function(text){
+    console.log('[MAPA] CSV primeros 300 chars:', text.substring(0,300));
+    var data=parseCSV(text);
+    console.log('[MAPA] proyectos parseados:', data.length);
+    if(data.length) data.forEach(function(p){ console.log(' -',p.id, p.lat, p.lng, p.title); });
+    if(!data.length){ showError(); return; }
+    _data=data;
+    document.getElementById('loading').style.display='none';
+    renderMarkers(_data);
+  })
+  .catch(function(e){
+    console.error('[MAPA] fetch error:', e);
+    showError();
+  });
+
+</script>
+</body>
+</html>
