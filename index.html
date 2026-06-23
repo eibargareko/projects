@@ -105,15 +105,14 @@ body { font-family: Arial, sans-serif; background:#f5f5f3; overflow:hidden; }
     <span class="filter-lbl">VER</span>
     <button class="fbtn active" data-cat="todos">Todos</button>
     <!-- ═══════════════════════════════════════════════════════════
-         FILTROS — añade o quita botones aquí cuando necesites
-         Formato: <button class="fbtn" data-cat="VALOR_DEL_TAG">Etiqueta</button>
-         El data-cat debe coincidir exactamente con el valor de la columna "tag"
-         ═══════════════════════════════════════════════════════════ -->
-    <button class="fbtn" data-cat="Regeneración urbana">Regeneración</button>
-    <button class="fbtn" data-cat="Industrial / Sandbox">Industrial</button>
-    <button class="fbtn" data-cat="Patrimonio industrial">Patrimonio</button>
-    <button class="fbtn" data-cat="En definición">Sin definir</button>
-    <button class="fbtn" data-cat="Espacio Industrial degradado">Espacio degradado</button>
+     FILTROS — añade o quita botones aquí cuando necesites
+     Formato: <button class="fbtn" data-cat="VALOR_DEL_TAG">Etiqueta</button>
+     El data-cat debe coincidir exactamente con el valor de la columna "tag"
+     ═══════════════════════════════════════════════════════════ -->
+<button class="fbtn" data-cat="En transformación">Transformación</button>
+<button class="fbtn" data-cat="Industrial urbano">Industrial urbano</button>
+<button class="fbtn" data-cat="Área industrial">Área industrial</button>
+<button class="fbtn" data-cat="Espacio degradado">Degradado</button>
   </div>
   <div class="hdr-badge">PEDL 2026</div>
 </div>
@@ -140,10 +139,10 @@ body { font-family: Arial, sans-serif; background:#f5f5f3; overflow:hidden; }
 
 <div id="legend">
   <div class="lgtitle">ESPACIOS ESTRATÉGICOS</div>
-  <div class="lgrow"><div class="lgdot" style="background:#CE004A"></div>Regeneración urbana</div>
-  <div class="lgrow"><div class="lgdot" style="background:#003DA5"></div>Industrial / Sandbox</div>
-  <div class="lgrow"><div class="lgdot" style="background:#7a5c3a"></div>Patrimonio industrial</div>
-  <div class="lgrow"><div class="lgdot" style="background:#777"></div>En definición</div>
+ <div class="lgrow"><div class="lgdot" style="background:#CE004A"></div>En transformación</div>
+<div class="lgrow"><div class="lgdot" style="background:#003DA5"></div>Industrial urbano</div>
+<div class="lgrow"><div class="lgdot" style="background:#2D6A4F"></div>Área industrial</div>
+<div class="lgrow"><div class="lgdot" style="background:#555"></div>Espacio degradado</div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
